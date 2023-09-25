@@ -23,11 +23,13 @@ package me.clip.placeholderapi.expansion;
 public final class Version {
 
   private final boolean isSpigot;
+  private final boolean isFolia;
   private final String version;
 
-  public Version(String version, boolean isSpigot) {
+  public Version(String version, boolean isSpigot, boolean isFolia) {
     this.version = version;
     this.isSpigot = isSpigot;
+    this.isFolia = isFolia;
   }
 
   public String getVersion() {
@@ -36,6 +38,10 @@ public final class Version {
 
   public boolean isSpigot() {
     return isSpigot;
+  }
+
+  public boolean isFolia() {
+    return isFolia;
   }
 
   public boolean compareTo(String version) {
