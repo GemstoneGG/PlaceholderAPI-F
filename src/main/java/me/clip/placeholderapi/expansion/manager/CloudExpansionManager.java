@@ -202,8 +202,7 @@ public final class CloudExpansionManager {
 
           // loop through what's left on the main thread
           plugin
-              .getServer()
-              .getScheduler()
+              .getMinecraftScheduler()
               .runTask(
                   plugin,
                   () -> {

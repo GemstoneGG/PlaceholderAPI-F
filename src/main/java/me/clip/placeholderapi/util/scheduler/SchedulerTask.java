@@ -1,3 +1,4 @@
+package me.clip.placeholderapi.util.scheduler;
 /*
  * This file is part of PlaceholderAPI
  *
@@ -18,34 +19,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package me.clip.placeholderapi.expansion;
+public interface SchedulerTask {
 
-public final class Version {
-
-  private final boolean isSpigot;
-  private final boolean isFolia;
-  private final String version;
-
-  public Version(String version, boolean isSpigot, boolean isFolia) {
-    this.version = version;
-    this.isSpigot = isSpigot;
-    this.isFolia = isFolia;
-  }
-
-  public String getVersion() {
-    return version == null ? "unknown" : version;
-  }
-
-  public boolean isSpigot() {
-    return isSpigot;
-  }
-
-  public boolean isFolia() {
-    return isFolia;
-  }
-
-  public boolean compareTo(String version) {
-    return getVersion().equalsIgnoreCase(version);
-  }
+    void cancel();
 
 }

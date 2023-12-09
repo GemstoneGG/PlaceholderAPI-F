@@ -32,6 +32,9 @@ import me.clip.placeholderapi.expansion.manager.LocalExpansionManager;
 import me.clip.placeholderapi.listeners.ServerLoadEventListener;
 import me.clip.placeholderapi.updatechecker.UpdateChecker;
 import me.clip.placeholderapi.util.Msg;
+import me.clip.placeholderapi.util.scheduler.MinecraftBukkitScheduler;
+import me.clip.placeholderapi.util.scheduler.MinecraftFoliaScheduler;
+import me.clip.placeholderapi.util.scheduler.MinecraftScheduler;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
@@ -52,12 +55,14 @@ public final class PlaceholderAPIPlugin extends JavaPlugin {
 
   @NotNull
   private static final Version VERSION;
+  private MinecraftScheduler minecraftScheduler;
   private static PlaceholderAPIPlugin instance;
 
   static {
     final String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 
     boolean isSpigot;
+    boolean isFolia;
     try {
       Class.forName("org.spigotmc.SpigotConfig");
       isSpigot = true;
@@ -65,7 +70,14 @@ public final class PlaceholderAPIPlugin extends JavaPlugin {
       isSpigot = false;
     }
 
-    VERSION = new Version(version, isSpigot);
+    try {
+        Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+        isFolia=  true;
+    } catch (ClassNotFoundException ignored) {
+        isFolia = false;
+    }
+
+    VERSION = new Version(version, isSpigot, isFolia);
   }
 
   @NotNull
@@ -140,6 +152,7 @@ public final class PlaceholderAPIPlugin extends JavaPlugin {
 
   @Override
   public void onEnable() {
+    minecraftScheduler = getServerVersion().isFolia() ? new MinecraftFoliaScheduler() : new MinecraftBukkitScheduler();
     setupCommand();
     setupMetrics();
     setupExpansions();
@@ -162,7 +175,7 @@ public final class PlaceholderAPIPlugin extends JavaPlugin {
 
     HandlerList.unregisterAll(this);
 
-    Bukkit.getScheduler().cancelTasks(this);
+    minecraftScheduler.cancelTasks(this);
 
     adventure.close();
     adventure = null;
@@ -213,7 +226,11 @@ public final class PlaceholderAPIPlugin extends JavaPlugin {
     return config;
   }
 
-  private void setupCommand() {
+    public MinecraftScheduler getMinecraftScheduler() {
+      return minecraftScheduler;
+    }
+
+    private void setupCommand() {
     final PluginCommand pluginCommand = getCommand("placeholderapi");
     if (pluginCommand == null) {
       return;
@@ -250,8 +267,8 @@ public final class PlaceholderAPIPlugin extends JavaPlugin {
       Class.forName("org.bukkit.event.server.ServerLoadEvent");
       new ServerLoadEventListener(this);
     } catch (final ClassNotFoundException ignored) {
-      Bukkit.getScheduler()
-          .runTaskLater(this, () -> getLocalExpansionManager().load(Bukkit.getConsoleSender()), 1);
+      minecraftScheduler
+          .createDelayedTask(this, () -> getLocalExpansionManager().load(Bukkit.getConsoleSender()), 1);
     }
   }
 
